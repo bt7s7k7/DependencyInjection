@@ -13,8 +13,8 @@ export namespace DIService {
         return DIService as unknown as { new(): T & DIService }
     }
 
-    export type CtorServiceDefinition = { new(...args: any[]): DIService }
-    export type FactoryServiceDefinition = { make(...args: any[]): DIService }
+    export type CtorServiceDefinition = { new(...args: any[]): any }
+    export type FactoryServiceDefinition = { make(...args: any[]): any }
 
     export type ServiceDefinition = CtorServiceDefinition | FactoryServiceDefinition
     export type GetServiceDefinitionService<T extends ServiceDefinition> =
