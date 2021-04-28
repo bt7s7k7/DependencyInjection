@@ -1,7 +1,7 @@
 import { expect } from "chai"
-import { DICompat } from "../../src/dependencyInjection/DICompat"
 import { DIContext } from "../../src/dependencyInjection/DIContext"
 import { DIService } from "../../src/dependencyInjection/DIService"
+import { Disposable, DISPOSE } from "../../src/eventLib/Disposable"
 import { describeMember } from "../testUtil/describeMember"
 import { tracker } from "../testUtil/tracker"
 
@@ -74,16 +74,19 @@ describeMember(() => DIContext, () => {
 
     it("Should dispose services", () => {
         const context = new DIContext()
-        const { Service, ServiceImpl, serviceTracker } = createService(context)
 
-        context.provide(Service, () => new ServiceImpl())
-        context.provide(DICompat.ServiceDisposer, () => new class extends DICompat.ServiceDisposer {
-            public disposeService(service: any) {
-                if (service.trigger) service.trigger()
+        const disposeTracker = tracker("disposeTracker")
+
+        class Service extends Disposable {
+            public [DISPOSE]() {
+                super[DISPOSE]()
+                disposeTracker.trigger()
             }
-        })
+        }
+
+        context.provide(Service, () => new Service())
 
         context.destroy()
-        serviceTracker.check()
+        disposeTracker.check()
     })
 })

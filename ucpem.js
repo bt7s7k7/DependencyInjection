@@ -2,9 +2,7 @@
 
 const { project, github } = require("ucpem")
 
-const dependencyInjection = project.prefix("src").res("dependencyInjection")
-project.prefix("src").res("dependencyInjectionEventLib",
-    dependencyInjection,
+project.prefix("src").res("dependencyInjection",
     github("bt7s7k7/EventLib").res("eventLib")
 )
 

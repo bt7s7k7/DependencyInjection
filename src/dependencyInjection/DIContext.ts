@@ -1,4 +1,4 @@
-import { DICompat } from "./DICompat"
+import { DISPOSE } from "../eventLib/Disposable"
 import { DIService } from "./DIService"
 import { DependencyNotProvidedError, NoContextError, ServiceInstanceExistsError } from "./Errors"
 
@@ -48,11 +48,8 @@ export class DIContext {
     }
 
     public destroy() {
-        const disposer = this.tryInject(DICompat.ServiceDisposer)
-        if (disposer) {
-            for (const service of this.definitions.values()) {
-                disposer.disposeService(service)
-            }
+        for (const service of this.definitions.values() as IterableIterator<any>) {
+            if (DISPOSE in service) service[DISPOSE]()
         }
     }
 
