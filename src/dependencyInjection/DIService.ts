@@ -1,9 +1,11 @@
+import { EventListener } from "../eventLib/EventListener"
 import { DIContext } from "./DIContext"
 
-export class DIService {
+export class DIService extends EventListener {
     public context: DIContext
 
     constructor() {
+        super()
         this.context = DIContext.current
     }
 }

@@ -1,6 +1,7 @@
 import { expect } from "chai"
 import { DIContext } from "../../src/dependencyInjection/DIContext"
 import { DIService } from "../../src/dependencyInjection/DIService"
+import { EventBus } from "../../src/dependencyInjection/EventBus"
 import { Disposable, DISPOSE } from "../../src/eventLib/Disposable"
 import { describeMember } from "../testUtil/describeMember"
 import { tracker } from "../testUtil/tracker"
@@ -86,7 +87,65 @@ describeMember(() => DIContext, () => {
 
         context.provide(Service, () => new Service())
 
-        context.destroy()
+        context.dispose()
         disposeTracker.check()
+    })
+
+    it("Should be able to emit events in both directions", () => {
+        class EventType extends EventBus.defineEvent<{}>() { }
+
+        const top = new DIContext()
+        const middle = new DIContext(top)
+        const bottom = new DIContext(middle)
+
+        const topListener = top.listen(EventType)
+        const middleListener = middle.listen(EventType)
+        const bottomListener = bottom.listen(EventType)
+
+        const topTracker = tracker("topTracker")
+        const middleTracker = tracker("middleTracker")
+        const bottomTracker = tracker("bottomTracker")
+
+        topListener.onEvent.add(null, () => {
+            topTracker.trigger()
+        })
+
+        middleListener.onEvent.add(null, () => {
+            middleTracker.trigger()
+        })
+
+        bottomListener.onEvent.add(null, () => {
+            bottomTracker.trigger()
+        })
+
+        top.emit(new EventType({}), "down")
+        topTracker.check(1)
+        middleTracker.check(1)
+        bottomTracker.check(1)
+
+        middle.emit(new EventType({}), "down")
+        topTracker.check(1)
+        middleTracker.check(2)
+        bottomTracker.check(2)
+
+        bottom.emit(new EventType({}), "down")
+        topTracker.check(1)
+        middleTracker.check(2)
+        bottomTracker.check(3)
+
+        top.emit(new EventType({}), "up")
+        topTracker.check(2)
+        middleTracker.check(2)
+        bottomTracker.check(3)
+
+        middle.emit(new EventType({}), "up")
+        topTracker.check(3)
+        middleTracker.check(3)
+        bottomTracker.check(3)
+
+        bottom.emit(new EventType({}), "up")
+        topTracker.check(4)
+        middleTracker.check(4)
+        bottomTracker.check(4)
     })
 })
