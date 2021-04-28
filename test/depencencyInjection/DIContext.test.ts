@@ -1,8 +1,10 @@
 import { expect } from "chai"
+import { AsyncServiceFactory } from "../../src/dependencyInjection/AsyncServiceFactory"
 import { DIContext } from "../../src/dependencyInjection/DIContext"
 import { DIService } from "../../src/dependencyInjection/DIService"
 import { EventBus } from "../../src/dependencyInjection/EventBus"
 import { Disposable, DISPOSE } from "../../src/eventLib/Disposable"
+import { makeAsyncLock } from "../testUtil/asyncLock"
 import { describeMember } from "../testUtil/describeMember"
 import { tracker } from "../testUtil/tracker"
 
@@ -147,5 +149,54 @@ describeMember(() => DIContext, () => {
         topTracker.check(4)
         middleTracker.check(4)
         bottomTracker.check(4)
+    })
+
+    it("Should correctly report async provide progress", async () => {
+        const context = new DIContext()
+
+        const { Service } = createService(context)
+
+        expect(context.getStatus(Service).type).to.equal("notStarted")
+
+        const listener = context.getStatus(Service).listen()
+
+        const tracker1 = tracker("tracker1")
+        listener.onEvent.add(null, (event) => {
+            if (event.status.type != "progress") expect.fail()
+            expect(event.status.message).to.equal("0")
+            tracker1.trigger()
+        }, true)
+
+        const lock1 = makeAsyncLock()
+        const lock2 = makeAsyncLock()
+
+        let instance: any = null
+
+        context.provideAsync(Service, new AsyncServiceFactory<typeof Service>(async (context, reporter) => {
+            await lock1.promise
+            reporter.progress("0")
+            await lock2.promise
+            instance = context.instantiate(() => new Service())
+            return instance
+        }))
+
+        tracker1.check(0)
+
+        await lock1.resolve()
+
+        tracker1.check()
+
+        const tracker2 = tracker("tracker2")
+        listener.onEvent.add(null, (event) => {
+            if (event.status.type != "done") expect.fail()
+            expect(event.status.instance).to.equal(instance)
+            tracker2.trigger()
+        })
+
+        await lock2.resolve()
+        // Delay further because resolving the async factory callback is an another promise resolution
+        await makeAsyncLock().resolve()
+
+        tracker2.check()
     })
 })

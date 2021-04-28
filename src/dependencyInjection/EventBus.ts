@@ -35,6 +35,8 @@ export namespace EventBus {
         [EVENT_INSTANCE_TAG]: true
     }
 
+    export type MakeEventInstance<T> = EventInstance & T
+
     export type Direction = "up" | "down"
 
     export function defineEvent<T>() {

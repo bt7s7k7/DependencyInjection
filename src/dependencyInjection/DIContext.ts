@@ -1,7 +1,9 @@
 import { Disposable, DISPOSE } from "../eventLib/Disposable"
+import { AsyncServiceFactory } from "./AsyncServiceFactory"
 import { DIService } from "./DIService"
 import { DependencyNotProvidedError, NoContextError, ServiceInstanceExistsError } from "./Errors"
 import { EventBus } from "./EventBus"
+import { IStatusUpdateEvent, ProcessStatusInfo, StatusUpdateEvent } from "./StatusUpdateEvent"
 
 let currContext: DIContext | null = null
 let idNext = 0
@@ -12,6 +14,10 @@ function getDefName(def: DIService.ServiceDefinition) {
     } else {
         return "<unnamed>"
     }
+}
+
+type ProcessStatusReport<T> = ProcessStatusInfo<T> & {
+    listen(): EventBus.EventBusListener<EventBus.MakeEventInstance<IStatusUpdateEvent<T>>>
 }
 
 export class DIContext extends Disposable {
@@ -36,6 +42,10 @@ export class DIContext extends Disposable {
         this.definitions.set(def, service)
 
         return service as ReturnType<F>
+    }
+
+    public provideAsync<T extends DIService.ServiceDefinition>(def: T, factory: AsyncServiceFactory<T>) {
+        factory.run(this, v => this.setStatus(def, v))
     }
 
     public instantiate<T>(factory: () => T) {
@@ -65,7 +75,22 @@ export class DIContext extends Disposable {
         this.eventBus.emit(event, { direction, id: this.id, ids: this.ids })
     }
 
+    public getStatus<T extends DIService.ServiceDefinition>(def: T): ProcessStatusReport<DIService.GetServiceDefinitionService<T>> {
+        const local = this.asyncStates.get(def)
+        const info: ProcessStatusInfo<DIService.GetServiceDefinitionService<T>> = local ? local
+            : this.parent ? this.parent.getStatus(def)
+                : { type: "notStarted" }
+
+        return {
+            ...info, listen: () => {
+                const event = StatusUpdateEvent.get(def)
+                return this.listen(event)
+            }
+        }
+    }
+
     protected definitions = new Map<DIService.ServiceDefinition, unknown>()
+    protected asyncStates = new Map<DIService.ServiceDefinition, ProcessStatusInfo>()
     protected readonly id = idNext++
     protected readonly ids = new Set<number>()
     protected readonly eventBus = this.parent ? this.inject(EventBus) : this.provide(EventBus, () => new EventBus())
@@ -76,6 +101,17 @@ export class DIContext extends Disposable {
         if (local) return local
         else if (this.parent) return this.parent.lookup(def)
         else return null
+    }
+
+    protected setStatus(def: DIService.ServiceDefinition, status: ProcessStatusInfo) {
+        this.asyncStates.set(def, status)
+        if (status.type == "done") {
+            this.provide(def, () => status.instance)
+        }
+
+        const UpdateEvent = StatusUpdateEvent.get(def)
+
+        this.emit(new UpdateEvent({ status }))
     }
 
     constructor(
