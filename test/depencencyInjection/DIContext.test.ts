@@ -1,4 +1,5 @@
 import { expect } from "chai"
+import { DICompat } from "../../src/dependencyInjection/DICompat"
 import { DIContext } from "../../src/dependencyInjection/DIContext"
 import { DIService } from "../../src/dependencyInjection/DIService"
 import { describeMember } from "../testUtil/describeMember"
@@ -69,5 +70,20 @@ describeMember(() => DIContext, () => {
         expect(() => {
             context.inject(Service)
         }).to.throw(`Cannot find service "Service" depended upon`)
+    })
+
+    it("Should dispose services", () => {
+        const context = new DIContext()
+        const { Service, ServiceImpl, serviceTracker } = createService(context)
+
+        context.provide(Service, () => new ServiceImpl())
+        context.provide(DICompat.ServiceDisposer, () => new class extends DICompat.ServiceDisposer {
+            public disposeService(service: any) {
+                if (service.trigger) service.trigger()
+            }
+        })
+
+        context.destroy()
+        serviceTracker.check()
     })
 })
