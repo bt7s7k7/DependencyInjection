@@ -18,6 +18,7 @@ function getDefName(def: DIService.ServiceDefinition) {
 
 type ProcessStatusReport<T> = ProcessStatusInfo<T> & {
     listen(): EventBus.EventBusListener<EventBus.MakeEventInstance<IStatusUpdateEvent<T>>>
+    whenFinished(): Promise<T>
 }
 
 export class DIContext extends Disposable {
@@ -85,6 +86,21 @@ export class DIContext extends Disposable {
             ...info, listen: () => {
                 const event = StatusUpdateEvent.get(def)
                 return this.listen(event)
+            },
+            whenFinished() {
+                if (info.type == "done") return Promise.resolve(info.instance)
+
+                return new Promise((resolve, reject) => {
+                    this.listen().onEvent.add(null, (event, self) => {
+                        if (event.status.type == "error") {
+                            reject(event.status.error)
+                            self[DISPOSE]()
+                        } else if (event.status.type == "done") {
+                            resolve(event.status.instance)
+                            self[DISPOSE]()
+                        }
+                    })
+                })
             }
         }
     }
