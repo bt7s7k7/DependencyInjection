@@ -36,10 +36,17 @@ export class DIContext extends Disposable {
         else return null
     }
 
-    public provide<T extends DIService.ServiceDefinition, F extends () => DIService.GetServiceDefinitionService<T>>(def: T, factory: F) {
+
+    public provide<T extends DIService.ServiceDefinition, F extends () => DIService.GetServiceDefinitionService<T>>(def: T, factory: F): ReturnType<F>
+    public provide<T extends DIService.ServiceDefinition>(def: T, mode: "default"): DIService.GetServiceDefinitionService<T>
+    public provide<T extends DIService.ServiceDefinition, F extends () => DIService.GetServiceDefinitionService<T>>(def: T, factory: F | "default") {
         if (this.definitions.has(def)) throw new ServiceInstanceExistsError(getDefName(def))
 
-        const service = this.instantiate(factory)
+        const service = factory == "default" ? (() => {
+            const ctor = def as any
+            if ("make" in ctor) return this.instantiate(() => ctor.make())
+            if (typeof ctor == "function") return this.instantiate(() => new ctor())
+        })() : this.instantiate(factory)
         this.definitions.set(def, service)
 
         return service as ReturnType<F>
