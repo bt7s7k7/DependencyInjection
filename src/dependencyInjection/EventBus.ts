@@ -1,7 +1,6 @@
 import { AUTO_DISPOSE } from "../eventLib/Disposable"
 import { EventEmitter } from "../eventLib/EventEmitter"
 import { EventListener } from "../eventLib/EventListener"
-import { DIService } from "./DIService"
 
 type ContextInfo = { id: number, ids: Set<number> }
 type EventRoutingInfo = ContextInfo & { direction: EventBus.Direction } | { global: true }
@@ -16,7 +15,7 @@ class EventWrapper {
 const EVENT_INSTANCE_TAG = Symbol("eventInstanceTag")
 const GET_EVENT_BUS_EMITTER = Symbol("getEventBusEmitter")
 
-export class EventBus extends DIService {
+export class EventBus extends EventListener {
     public emit(event: EventBus.EventInstance, routing: EventRoutingInfo) {
         const wrapper = new EventWrapper(event, routing)
 
