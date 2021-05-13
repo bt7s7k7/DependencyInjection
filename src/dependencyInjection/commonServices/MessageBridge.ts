@@ -57,14 +57,24 @@ export class MessageBridge extends DIService.define<{
 
                 this.onRequest.emit(handle)
 
-                if (!handle.handled) throw new Error(`Request of type ${JSON.stringify(msg.type)} not handled`)
+                if (!handle.handled) {
+                    const error = new Error(`Request of type ${JSON.stringify(msg.type)} not supported`)
+                    // eslint-disable-next-line no-console
+                    console.error(error)
+                    this.sendMessage({
+                        direction: "response",
+                        id: msg.id,
+                        data: null,
+                        error: error.message
+                    })
+                }
             } else if (msg.direction == "response") {
                 if (msg.id in this.pendingRequests) {
                     const request = this.pendingRequests[msg.id]
                     delete this.pendingRequests[msg.id]
 
                     if (msg.error) {
-                        request.reject(msg.error)
+                        request.reject(new Error("Server Error: " + msg.error))
                     } else {
                         request.resolve(msg.data)
                     }
