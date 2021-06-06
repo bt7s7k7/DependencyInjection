@@ -17,7 +17,7 @@ export class MessageBridge extends DIService.define<{
             this.sendMessage({
                 data, type, id,
                 direction: "request"
-            })
+            }).catch(e => reject(e))
         })
     }
 
