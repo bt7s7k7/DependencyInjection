@@ -119,4 +119,23 @@ export namespace MessageBridge {
             this.onMessage.emit(JSON.parse(JSON.stringify(message)))
         }
     }
+
+    export class Generic extends MessageBridge {
+        constructor(
+            public readonly bus: {
+                postMessage(msg: Message): void,
+                addEventListener(event: "message", listener: (event: { data: Message }) => void): void
+            }
+        ) {
+            super()
+
+            if (bus.addEventListener) {
+                bus.addEventListener("message", event => this.onMessage.emit(event.data))
+            }
+
+            if (bus.postMessage) {
+                this.sendMessage = async msg => bus.postMessage(msg)
+            }
+        }
+    }
 }
