@@ -1,4 +1,4 @@
-import { computed, inject, InjectionKey, provide, ref, Ref } from "vue"
+import { computed, inject, InjectionKey, onUnmounted, provide, ref, Ref } from "vue"
 import { DIContext } from "../dependencyInjection/DIContext"
 import { DIService } from "../dependencyInjection/DIService"
 
@@ -31,6 +31,10 @@ export function useContext() {
     }
 
     if (!parent) ensureCurrent()
+
+    onUnmounted(() => {
+        current?.dispose()
+    })
 
     return {
         instance,
