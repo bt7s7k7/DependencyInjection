@@ -13,8 +13,8 @@ export interface ContextHookReturn {
     ensureCurrent(): void
 }
 
-export function useContext() {
-    const parent = inject(CONTEXT_INJECTION_KEY, null)
+export function useContext(forceParent: DIContext | null = null) {
+    const parent = forceParent ?? inject(CONTEXT_INJECTION_KEY, null)
 
     let current: DIContext | null = null
 
