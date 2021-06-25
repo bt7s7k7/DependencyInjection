@@ -5,7 +5,7 @@ import { DependencyNotProvidedError, NoContextError, ServiceInstanceExistsError 
 import { EventBus } from "./EventBus"
 import { IStatusUpdateEvent, ProcessStatusInfo, StatusUpdateEvent } from "./StatusUpdateEvent"
 
-let currContext: DIContext | null = null
+let currContext: DIContext[] = []
 let idNext = 0
 
 function getDefName(def: DIService.ServiceDefinition) {
@@ -58,12 +58,11 @@ export class DIContext extends Disposable {
 
     public instantiate<T>(factory: () => T) {
         try {
-            currContext = this
+            currContext.push(this)
             const ret = factory()
-            currContext = null
             return ret
         } finally {
-            currContext = null
+            currContext.pop()
         }
     }
 
@@ -150,8 +149,8 @@ export class DIContext extends Disposable {
     }
 
     public static get current() {
-        if (!currContext) throw new NoContextError()
-        return currContext
+        if (currContext.length == 0) throw new NoContextError()
+        return currContext[currContext.length - 1]
     }
 }
 
