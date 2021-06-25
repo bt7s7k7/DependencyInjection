@@ -121,6 +121,10 @@ export namespace MessageBridge {
     }
 
     export class Generic extends MessageBridge {
+        public async sendMessage(message: Message) {
+            this.bus.postMessage?.(message)
+        }
+
         constructor(
             public readonly bus: {
                 postMessage(msg: Message): void,
@@ -131,10 +135,6 @@ export namespace MessageBridge {
 
             if (bus.addEventListener) {
                 bus.addEventListener("message", event => this.onMessage.emit(event.data))
-            }
-
-            if (bus.postMessage) {
-                this.sendMessage = async msg => bus.postMessage(msg)
             }
         }
     }
