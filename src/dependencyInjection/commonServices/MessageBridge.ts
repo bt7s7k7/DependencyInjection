@@ -41,6 +41,9 @@ export class MessageBridge extends DIService.define<{
                                 error: null
                             })
                         }, error => {
+                            // eslint-disable-next-line no-console
+                            console.error(error)
+
                             if (error.message) error = error.message
 
                             this.sendMessage({
@@ -49,8 +52,6 @@ export class MessageBridge extends DIService.define<{
                                 data: null,
                                 error
                             })
-
-                            throw error
                         })
                     }
                 }
