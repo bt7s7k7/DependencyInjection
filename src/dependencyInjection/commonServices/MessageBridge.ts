@@ -131,8 +131,8 @@ export namespace MessageBridge {
 
     export class Generic extends MessageBridge {
         public async sendMessage(message: Message) {
-            if ("postMessage" in this.bus) this.bus.postMessage(message)
             if ("send" in this.bus) this.bus.send(message)
+            else if ("postMessage" in this.bus) this.bus.postMessage(message)
         }
 
         constructor(
@@ -140,13 +140,12 @@ export namespace MessageBridge {
         ) {
             super()
 
-            if ("addEventListener" in bus) {
+            if ("on" in bus) {
+                bus.on("message", msg => this.onMessage.emit(msg))
+            } else if ("addEventListener" in bus) {
                 bus.addEventListener("message", event => this.onMessage.emit(event.data))
             }
 
-            if ("on" in bus) {
-                bus.on("message", msg => this.onMessage.emit(msg))
-            }
         }
     }
 }
