@@ -13,6 +13,8 @@ export interface ContextHookReturn {
     ensureCurrent(): void
 }
 
+const executeComputed: (target: Ref<any>) => void = new Function("target", "target.value") as any
+
 export function useContext(forceParent: DIContext | null = null) {
     const parent = forceParent ?? inject(CONTEXT_INJECTION_KEY, null)
 
@@ -42,7 +44,7 @@ export function useContext(forceParent: DIContext | null = null) {
         provide(def: any, factoryOrMode: any) {
             ensureCurrent()
             const ret = computed(() => instance.value.provide(def, factoryOrMode))
-            ret.value
+            executeComputed(ret)
             return ret
         },
         inject(def) {
