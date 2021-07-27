@@ -15,12 +15,12 @@ export namespace DIService {
         return DIService as unknown as { new(): T & DIService }
     }
 
-    export type CtorServiceDefinition = { new(...args: any[]): any }
+    export type CtorServiceDefinition = abstract new (...args: any) => any
     export type FactoryServiceDefinition = { make(...args: any[]): any } | { (...args: any[]): any }
 
     export type ServiceDefinition = CtorServiceDefinition | FactoryServiceDefinition
     export type GetServiceDefinitionService<T extends ServiceDefinition> =
-        T extends { new(...args: any[]): infer U } ? U
+        T extends abstract new (...args: any) => infer U ? U
         : T extends { make(...args: any[]): infer U } ? U
         : T extends { (...args: any[]): infer U } ? U
         : never
