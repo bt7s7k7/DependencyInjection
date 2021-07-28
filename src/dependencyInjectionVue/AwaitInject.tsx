@@ -16,9 +16,9 @@ export const AwaitInject = (defineComponent({
         const state = context.tryInject(props.def)
 
         return () => (
-            <div>
+            <>
                 {ctx.slots[state.value ? "default" : "pending"]?.()}
-            </div>
+            </>
         )
     }
 }))
