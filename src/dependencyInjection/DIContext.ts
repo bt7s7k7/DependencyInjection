@@ -152,5 +152,11 @@ export class DIContext extends Disposable {
         if (currContext.length == 0) throw new NoContextError()
         return currContext[currContext.length - 1]
     }
+
+    public static async asyncFactoryHelper<T extends DIService.ServiceDefinition, F extends DIService.GetServiceDefinitionService<T>>(context: DIContext, definition: T, factory: () => Promise<F>) {
+        const instance = await context.instantiate(factory)
+        context.provide(definition, () => instance)
+        return instance
+    }
 }
 
