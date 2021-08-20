@@ -44,13 +44,14 @@ export class MessageBridge extends DIService.define<{
                             // eslint-disable-next-line no-console
                             console.error(error)
 
-                            if (error.message) error = error.message
+                            const message = typeof error == "object" && error._isClientError ? error.message
+                                : "Internal server error"
 
                             this.sendMessage({
                                 direction: "response",
                                 id: msg.id,
                                 data: null,
-                                error
+                                error: message
                             })
                         })
                     }
@@ -147,5 +148,9 @@ export namespace MessageBridge {
             }
 
         }
+    }
+
+    export class ClientError extends Error {
+        public readonly _isClientError = true
     }
 }
