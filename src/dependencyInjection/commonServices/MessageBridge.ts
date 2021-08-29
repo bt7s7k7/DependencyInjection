@@ -41,10 +41,13 @@ export class MessageBridge extends DIService.define<{
                                 error: null
                             })
                         }, error => {
-                            // eslint-disable-next-line no-console
-                            console.error(error)
+                            const isClientError = typeof error == "object" && error._isClientError
+                            if (!isClientError) {
+                                // eslint-disable-next-line no-console
+                                console.error(error)
+                            }
 
-                            const message = typeof error == "object" && error._isClientError ? error.message
+                            const message = isClientError ? error.message
                                 : "Internal server error"
 
                             this.sendMessage({
