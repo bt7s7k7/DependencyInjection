@@ -10,14 +10,18 @@ export class MessageBridge extends DIService.define<{
 
     public sendRequest(type: string, data: any) {
         return new Promise<any>((resolve, reject) => {
-            const id = this.context.inject(IDProvider).getID()
-            const pendingRequest: MessageBridge.PendingRequest = { resolve, reject }
+            try {
+                const id = this.context.inject(IDProvider).getID()
+                const pendingRequest: MessageBridge.PendingRequest = { resolve, reject }
 
-            this.pendingRequests[id] = pendingRequest
-            this.sendMessage({
-                data, type, id,
-                direction: "request"
-            }).catch(e => reject(e))
+                this.pendingRequests[id] = pendingRequest
+                this.sendMessage({
+                    data, type, id,
+                    direction: "request"
+                }).catch(e => reject(e))
+            } catch (err) {
+                reject(err)
+            }
         })
     }
 
