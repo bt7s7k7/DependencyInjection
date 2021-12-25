@@ -1,4 +1,5 @@
-import { Disposable, DISPOSE } from "../eventLib/Disposable"
+import { ClientEventListener } from "../eventLib/ClientEventListener"
+import { DISPOSE } from "../eventLib/Disposable"
 import { AsyncServiceFactory } from "./AsyncServiceFactory"
 import { DIService } from "./DIService"
 import { DependencyNotProvidedError, NoContextError, ServiceInstanceExistsError } from "./Errors"
@@ -21,7 +22,7 @@ type ProcessStatusReport<T> = ProcessStatusInfo<T> & {
     whenFinished(): Promise<T>
 }
 
-export class DIContext extends Disposable {
+export class DIContext extends ClientEventListener {
     public inject<T extends DIService.ServiceDefinition>(def: T) {
         const service = this.tryInject(def)
 
