@@ -1,3 +1,4 @@
+import { DISPOSE } from "../../eventLib/Disposable"
 import { EventEmitter } from "../../eventLib/EventEmitter"
 import { DIService } from "../DIService"
 import { IDProvider } from "./IDProvider"
@@ -7,6 +8,14 @@ export class MessageBridge extends DIService.define<{
 }>() {
     public onMessage = new EventEmitter<MessageBridge.Message>()
     public onRequest = new EventEmitter<MessageBridge.RequestHandle>()
+    public [DISPOSE]() {
+        const error = new Error("MessageBridge disposed")
+        for (const pending of Object.values(this.pendingRequests)) {
+            pending.reject(error)
+        }
+
+        super[DISPOSE]()
+    }
 
     public sendRequest(type: string, data: any) {
         return new Promise<any>((resolve, reject) => {
