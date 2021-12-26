@@ -8,6 +8,8 @@ export class MessageBridge extends DIService.define<{
 }>() {
     public onMessage = new EventEmitter<MessageBridge.Message>()
     public onRequest = new EventEmitter<MessageBridge.RequestHandle>()
+    public obfuscateHandlerErrors = true
+
     public [DISPOSE]() {
         const error = new Error("MessageBridge disposed")
         for (const pending of Object.values(this.pendingRequests)) {
@@ -60,7 +62,7 @@ export class MessageBridge extends DIService.define<{
                                 console.error(error)
                             }
 
-                            const message = isClientError ? error.message
+                            const message = isClientError || this.obfuscateHandlerErrors == false ? error.message
                                 : "Internal server error"
 
                             this.sendMessage({
