@@ -94,7 +94,7 @@ export class MessageBridge extends DIService.define<{
                     delete this.pendingRequests[msg.id]
 
                     if (msg.error) {
-                        request.reject(new Error("Server Error: " + msg.error))
+                        request.reject(new MessageBridge.ServerError("Server Error: " + msg.error))
                     } else {
                         request.resolve(msg.data)
                     }
@@ -170,5 +170,9 @@ export namespace MessageBridge {
 
     export class ClientError extends Error {
         public readonly _isClientError = true
+    }
+
+    export class ServerError extends Error {
+        public name = "ServerError"
     }
 }
