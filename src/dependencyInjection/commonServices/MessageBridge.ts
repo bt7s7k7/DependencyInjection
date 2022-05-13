@@ -146,6 +146,9 @@ export namespace MessageBridge {
     } | {
         send(msg: Message): void,
         on(event: "message", handler: (msg: Message) => void): void
+    } | {
+        send(msg: Message): void,
+        onMessage: EventEmitter<Message>
     }
 
     export class Generic extends MessageBridge {
@@ -163,6 +166,8 @@ export namespace MessageBridge {
                 bus.on("message", msg => this.onMessage.emit(msg))
             } else if ("addEventListener" in bus) {
                 bus.addEventListener("message", event => this.onMessage.emit(event.data))
+            } else if ("onMessage" in bus) {
+                bus.onMessage.add(this, msg => this.onMessage.emit(msg))
             }
 
         }
