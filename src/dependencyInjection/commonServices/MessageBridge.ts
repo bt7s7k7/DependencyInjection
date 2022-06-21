@@ -3,6 +3,13 @@ import { EventEmitter } from "../../eventLib/EventEmitter"
 import { DIService } from "../DIService"
 import { IDProvider } from "./IDProvider"
 
+export class MessageBridgeDisposedError extends Error {
+    constructor() {
+        super("Request canceled because MessageBridge was disposed")
+        this.name = "MessageBridgeDisposedError"
+    }
+}
+
 export class MessageBridge extends DIService.define<{
     sendMessage(message: MessageBridge.Message): Promise<void>
 }>() {
@@ -11,7 +18,7 @@ export class MessageBridge extends DIService.define<{
     public obfuscateHandlerErrors = true
 
     public [DISPOSE]() {
-        const error = new Error("MessageBridge disposed")
+        const error = new MessageBridgeDisposedError()
         for (const pending of Object.values(this.pendingRequests)) {
             pending.reject(error)
         }
@@ -132,7 +139,7 @@ export namespace MessageBridge {
         reject: (error: any) => void
     }
 
-    export type Message = Request | Response
+    export type Message = Request | Response | { direction: null } & Record<string, any>
 
     export class Dummy extends MessageBridge {
         public async sendMessage(message: Message) {
