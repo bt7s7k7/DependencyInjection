@@ -16,6 +16,7 @@ export class MessageBridge extends DIService.define<{
     public onMessage = new EventEmitter<MessageBridge.Message>()
     public onRequest = new EventEmitter<MessageBridge.RequestHandle>()
     public obfuscateHandlerErrors = true
+    protected idProvider = this.context.tryInject(IDProvider) ?? new IDProvider.Incremental()
 
     public [DISPOSE]() {
         const error = new MessageBridgeDisposedError()
@@ -29,7 +30,7 @@ export class MessageBridge extends DIService.define<{
     public sendRequest(type: string, data: any) {
         return new Promise<any>((resolve, reject) => {
             try {
-                const id = this.context.inject(IDProvider).getID()
+                const id = this.idProvider.getID()
                 const pendingRequest: MessageBridge.PendingRequest = { resolve, reject }
 
                 this.pendingRequests[id] = pendingRequest
