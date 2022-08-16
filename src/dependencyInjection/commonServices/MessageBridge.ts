@@ -144,7 +144,14 @@ export namespace MessageBridge {
 
     export class Dummy extends MessageBridge {
         public async sendMessage(message: Message) {
+            if (this.logger) this.logger(message)
             this.onMessage.emit(JSON.parse(JSON.stringify(message)))
+        }
+
+        constructor(
+            protected readonly logger?: (msg: MessageBridge.Message) => void
+        ) {
+            super()
         }
     }
 
