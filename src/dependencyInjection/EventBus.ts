@@ -35,6 +35,7 @@ export namespace EventBus {
     }
 
     export type MakeEventInstance<T> = EventInstance & T
+    export type EventType<T> = { new(options: T): MakeEventInstance<T> }
 
     export type Direction = "up" | "down"
 
@@ -42,7 +43,7 @@ export namespace EventBus {
         return class Event {
             public [EVENT_INSTANCE_TAG] = true
             constructor(options: any) { Object.assign(this, options) }
-        } as unknown as { new(options: T): T & EventInstance }
+        } as unknown as EventType<T>
     }
 
     export class EventBusListener<T extends EventBus.EventInstance> extends EventListener {

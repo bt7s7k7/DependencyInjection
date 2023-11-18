@@ -31,7 +31,7 @@ export interface IStatusUpdateEvent<T> {
     status: ProcessStatusInfo<T>
 }
 
-function makeEventType<T extends DIService.ServiceDefinition>(type: T) {
+function makeEventType<T extends DIService.ServiceDefinition>(type: T): EventBus.EventType<IStatusUpdateEvent<DIService.GetServiceDefinitionService<T>>> {
     return class StatusUpdateEvent extends EventBus.defineEvent<IStatusUpdateEvent<DIService.GetServiceDefinitionService<T>>>() { }
 }
 
